@@ -1,0 +1,14 @@
+"""Application configuration."""
+
+APP_NAME = "ShopKit"
+VERSION = "0.1.0"
+
+# Pricing
+CURRENCY = "USD"
+TAX_RATE = 0.19
+FREE_SHIPPING_THRESHOLD = 100.0
+SHIPPING_FLAT_FEE = 9.99
+
+# Auth
+SESSION_TTL_SECONDS = 3600
+MIN_PASSWORD_LENGTH = 8
