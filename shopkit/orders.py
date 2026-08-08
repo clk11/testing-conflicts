@@ -23,6 +23,7 @@ class OrderService:
             raise OrderError("cart is empty")
 
         order_id = uuid.uuid4().hex
+        backorders_before = len(self.inventory.backorders)
         try:
             for line in cart.lines:
                 self.inventory.reserve(order_id, line["sku"], line["quantity"])
@@ -30,13 +31,17 @@ class OrderService:
             self.inventory.release(order_id)
             raise OrderError(str(exc)) from exc
 
+        backordered = len(self.inventory.backorders) > backorders_before
+
         totals = cart.total()
         order = {
             "id": order_id,
             "email": email,
+            "tier": cart.customer_tier,
             "lines": [dict(line) for line in cart.lines],
             "totals": totals,
-            "status": "confirmed",
+            "discount": totals["discount"],
+            "status": "backordered" if backordered else "confirmed",
         }
         self.orders[order_id] = order
         self.inventory.commit(order_id)

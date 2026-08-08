@@ -4,8 +4,9 @@ from . import config
 
 
 class Cart:
-    def __init__(self, owner_email):
+    def __init__(self, owner_email, customer_tier="standard"):
         self.owner_email = owner_email
+        self.customer_tier = customer_tier
         self.lines = []
 
     def add_item(self, sku, unit_price, quantity=1):
@@ -37,13 +38,33 @@ class Cart:
             return 0.0
         return config.SHIPPING_FLAT_FEE
 
+    def discount_rate(self):
+        """Best rate the cart qualifies for, by volume or by customer tier."""
+        count = self.item_count()
+        rate = 0.0
+        for threshold, tier_rate in config.VOLUME_DISCOUNT_TIERS:
+            if count >= threshold:
+                rate = tier_rate
+        if self.customer_tier == "wholesale":
+            rate = max(rate, config.WHOLESALE_DISCOUNT)
+        return rate
+
+    def discount(self, subtotal):
+        return round(subtotal * self.discount_rate(), 2)
+
     def total(self):
         subtotal = self.subtotal()
-        shipping = self.shipping(subtotal)
-        tax = round(subtotal * config.TAX_RATE, 2)
+        discount = self.discount(subtotal)
+        discounted = round(subtotal - discount, 2)
+        # Shipping follows the amount actually charged, so a big discount can
+        # push an order back under the free-shipping threshold.
+        shipping = self.shipping(discounted)
+        tax = round(discounted * config.TAX_RATE, 2)
         return {
             "subtotal": subtotal,
+            "discount": discount,
+            "discount_rate": self.discount_rate(),
             "shipping": shipping,
             "tax": tax,
-            "grand_total": round(subtotal + shipping + tax, 2),
+            "grand_total": round(discounted + shipping + tax, 2),
         }
