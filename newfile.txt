@@ -1,1 +1,0 @@
-here is a new file on the side branch. What we need to do is to test my ability to fix conflicts in neovim. We need to have at least 4 conflicts with multiple blocks so make sure that you create basic codebase that allows for that
