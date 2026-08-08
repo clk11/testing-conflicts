@@ -21,10 +21,13 @@ def main():
     cart.add_item("KB-01", 79.0, quantity=2)
     cart.add_item("MS-02", 25.5, quantity=1)
 
-    order = orders.place_order(token, cart)
+    order = orders.place_order(token, cart, coupon_code="WELCOME10")
     print(f"order {order['id']} -> {order['status']}")
+    print(f"coupon: {order['coupon']} (+{order['loyalty_points']} points)")
     for key, value in order["totals"].items():
         print(f"  {key}: {value}")
+
+    print(f"audit entries: {len(auth.audit_trail('ada@example.com'))}")
 
 
 if __name__ == "__main__":

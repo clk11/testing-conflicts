@@ -15,12 +15,15 @@ class OrderService:
         self.inventory = inventory
         self.orders = {}
 
-    def place_order(self, token, cart):
+    def place_order(self, token, cart, coupon_code=None):
         email = self.auth.resolve(token)
         if email is None:
             raise OrderError("session expired")
         if not cart.lines:
             raise OrderError("cart is empty")
+
+        if coupon_code:
+            cart.apply_coupon(coupon_code)
 
         order_id = uuid.uuid4().hex
         try:
@@ -36,6 +39,8 @@ class OrderService:
             "email": email,
             "lines": [dict(line) for line in cart.lines],
             "totals": totals,
+            "coupon": totals["coupon"],
+            "loyalty_points": totals["loyalty_points"],
             "status": "confirmed",
         }
         self.orders[order_id] = order
